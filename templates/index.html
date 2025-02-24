@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Simple Online Port Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-gray-100 text-gray-900 font-mono text-sm xsm:text-xs sm:text-base md:text-lg min-h-screen flex flex-col overflow-x-hidden">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex items-center mb-2 sm:mb-0"> <!-- Added margin bottom for small screens -->
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/network.png" alt="Logo" class="mr-2 w-6 h-6 sm:w-8 sm:h-8">
+                <h1 class="text-xl sm:text-2xl font-bold">PortPamper</h1>
+            </div>
+            <nav>
+                <ul class="flex flex-col sm:flex-row space-x-0 sm:space-x-4 items-center"> <!-- Stack on small screens -->
+                    <!-- Added FAQ button -->
+                    <li><button onclick="openFaqModal()" class="font-bold header-link text-sm sm:text-base">FAQs</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Form Container -->
+    <div class="container mx-auto p-4 content flex-grow" style="margin-bottom: 6rem;">
+        <div class="flex flex-col lg:flex-row mt-4"> <!-- Stack on small screens -->
+            <div id="form-container" class="w-full lg:w-1/2 h-full mr-0 lg:mr-6 p-2 flex-grow flex-1">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="text-2xl font-bold text-blue-600">Online Port Scanner</h1>
+                </div>
+
+                <div id="scan-form-container">
+                    <div class="mb-4">
+                        <label for="target" class="block text-lg font-medium text-blue-700">Target IP or Hostname:</label>
+                        <input type="text" id="target" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter target" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="port-range" class="block text-lg font-medium text-blue-700">Port Range:</label>
+                        <select id="port-range" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" onchange="togglePortInputs()">
+                            <option value="">Select</option>
+                            <option value="manual">Enter Manually</option>
+                            <option value="top10">Port Number 1-10</option>
+                            <option value="top100">Port Number 1-100</option>
+                            <option value="top1000">Port Number 1-1000</option>
+                        </select>
+                    </div>
+                    
+                    <div id="manual-port-inputs" class="mb-4" style="display: none;">
+                        <div class="mb-4">
+                            <label for="start-port" class="block text-lg font-medium text-blue-700">Start Port:</label>
+                            <input type="number" id="start-port" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter start port">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="end-port" class="block text-lg font-medium text-blue-700">End Port:</label>
+                            <input type="number" id="end-port" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter end port">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="scan-type" class="block text-lg font-medium text-blue-700">Scan Type:</label>
+                        <select id="scan-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                            <option value="tcp">TCP</option>
+                            <option value="udp">UDP</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Legal Disclaimer -->
+<div class="mb-4 p-2 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 text-sm legal-disclaimer flex items-center">
+    <input type="checkbox" id="disclaimer-checkbox" class="mr-2" style="width: auto;">
+    <label for="disclaimer-checkbox" class="flex-grow">
+        I have read and agree to the disclaimer
+        <button onclick="openTermsModal()" class="btn btn-primary text-blue-700 underline">Terms of Service</button>.
+    </label>
+</div>
+                </div>
+                
+                <div class="flex justify-between">
+                    <button id="scan-button" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-300" onclick="toggleScan()">Start Scan</button>
+                    <button id="help-button" class="w-1/4 bg-purple-500 text-white p-2 rounded-md hover:bg-purple-600 transition duration-300 ml-2" onclick="openHelpModal()">Help?</button>
+                </div>
+                
+                
+            </div>
+
+            <div id="info-container" class="w-full lg:w-1/2 px-8 py-4 h-full bg-white rounded-lg shadow-md mt-4 backdrop-filter bg-opacity-30 flex-grow flex-1 hidden xl:block">
+                <h2 class="text-2xl font-bold mb-4 text-blue-600">Common Ports and Their Uses</h2>
+                <p class="mb-4">Here's a list of some frequently used ports:</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-semibold text-lg text-blue-700 mb-2">Basic Services</h3>
+                        <ul class="list-disc list-inside">
+                            <li><span class="font-bold">21:</span> FTP</li>
+                            <li><span class="font-bold">22:</span> SSH</li>
+                            <li><span class="font-bold">23:</span> Telnet</li>
+                            <li><span class="font-bold">25:</span> SMTP</li>
+                            <li><span class="font-bold">53:</span> DNS</li>
+                            <li><span class="font-bold">80:</span> HTTP</li>
+                            <li><span class="font-bold">110:</span> POP3</li>
+                            <li><span class="font-bold">143:</span> IMAP</li>
+                            <li><span class="font-bold">443:</span> HTTPS</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg text-blue-700 mb-2">Other Common Ports</h3>
+                        <ul class="list-disc list-inside">
+                            <li><span class="font-bold">3389:</span> Remote Desktop Protocol</li>
+                            <li><span class="font-bold">27015:</span> Game server port</li>
+                            <li><span class="font-bold">137, 138, 139:</span> NetBIOS </li>
+                            <li><span class="font-bold">161, 162:</span> SNMP</li>
+                            <li><span class="font-bold">5432:</span> PostgreSQL</li>
+                            <li><span class="font-bold">3306:</span> MySQL</li>
+                            <li><span class="font-bold">8080:</span> HTTP Proxy</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="progress-container" class="mt-4" style="display: none;">
+            <div class="relative pt-1">
+                <div class="flex mb-2 items-center justify-between">
+                    <div>
+                        <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
+                            Scanning Progress
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <span id="progress-percentage" class="text-xs font-semibold inline-block text-blue-600"></span>
+                    </div>
+                </div>
+                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
+                    <div id="progress-bar" style="width:0%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms of Service Modal -->
+<div id="termsModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-headline" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-content">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                    Terms of Service
+                </h3>
+                <div id="termsModalContent" class="mt-2">
+                    <div class="container mx-auto p-4 text-left content">
+                        <h2 class="text-3xl font-bold text-blue-600 mb-4">Terms of Service</h2>
+                        <div class="terms-container bg-white p-4 rounded shadow-md">
+                            <p>Welcome to our Port Scanner tool. By using this tool, you agree to the following terms and conditions:</p>
+                            <ol class="list-decimal list-inside mt-4">
+                                <li>You must have explicit permission to scan any network or IP address.</li>
+                                <li>Unauthorized scanning of networks is illegal and unethical.</li>
+                                <li>We are not responsible for any misuse of this tool.</li>
+                                <li>Use this tool responsibly and only for legitimate purposes.</li>
+                                <li>We reserve the right to update these terms at any time.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse">
+                <span class="modal-close-button" onclick="closeTermsModal()">
+                    <img src="https://img.icons8.com/ios-filled/50/000000/close-window.png" alt="Close" class="w-6 h-6">
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Modal -->
+<div id="faqModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-headline" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-content">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                    FAQs
+                </h3>
+                <div id="faqModalContent" class="mt-2 overflow-y-auto max-h-96">
+                    <div class="container mx-auto p-4 content">
+                        <h2 class="text-3xl font-bold text-blue-600 mb-4">Frequently Asked Questions</h2>
+                        <div class="faq-container bg-white p-4 rounded shadow-md">
+                            <h3 class="font-bold">1. What is this Port Scanner Web App?</h3>
+                            <p>It is a tool that scans open ports on a given IP or domain, helping identify security vulnerabilities.</p>
+                            <h3 class="font-bold mt-4">2. How does the scanner work?</h3>
+                            <p>It sends network requests to detect open ports using Nmap or Python's socket library and returns scan results.</p>
+                            <h3 class="font-bold mt-4">3. Is port scanning legal?</h3>
+                            <p>Yes, but only on systems you own or have permission to scan. Unauthorized scanning may be illegal.</p>
+                            <h3 class="font-bold mt-4">4. What technologies does this app use?</h3>
+                            <p>The frontend uses HTML, CSS, and JavaScript. The backend is built with Python (Flask/Django). Scanning is done using Nmap CLI or the Python-Nmap library, and API communication is handled through REST API with JSON responses.</p>
+                            <h3 class="font-bold mt-4">5. What is the difference between TCP and UDP scanning?</h3>
+                            <p>TCP scans are faster and more reliable because they use a handshake mechanism, making them ideal for services like HTTP, SSH, and FTP. UDP scans are slower since they don’t have a handshake, making them less reliable but useful for services like DNS, SNMP, and VoIP.</p>
+                            <h3 class="font-bold mt-4">6. Why does UDP scanning take longer?</h3>
+                            <p>UDP scans take longer because there is no handshake, making it difficult to determine open ports. Packet loss, ICMP rate limiting, and firewall restrictions often cause delays and retries.</p>
+                            <h3 class="font-bold mt-4">7. Can I save or export my results?</h3>
+                            <p>Yes, you can download the scan results as a PDF.</p>
+                            <h3 class="font-bold mt-4">8. How do I troubleshoot a failed scan?</h3>
+                            <p>Check your network connection and ensure the target is reachable.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse">
+                <span class="modal-close-button" onclick="closeFaqModal()">
+                    <img src="https://img.icons8.com/ios-filled/50/000000/close-window.png" alt="Close" class="w-6 h-6">
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
+                             <div id="helpModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-headline" role="dialog" aria-modal="true">
+                                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-content">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                    How It Works
+                </h3>
+                <div id="helpModalContent" class="mt-2">
+                    <div class="container mx-auto p-4 content">
+                        <h2 class="text-3xl font-bold text-blue-600 mb-4">How It Works</h2>
+                        <div class="how-it-works-container">
+                            <p>This port scanner allows you to scan a range of ports on a target IP or hostname. Follow these steps to use the tool:</p>
+                            <ol class="list-decimal list-inside mt-4">
+                                <li>Enter the target IP or hostname in the input field.</li>
+                                <li>Select the port range you want to scan.</li>
+                                <li>Choose the scan type (TCP or UDP).</li>
+                                <li>Click the "Start Scan" button to begin the scan.</li>
+                                <li>View the scan progress and results in real-time.</li>
+                                <li>Download the scan results as a PDF if needed.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse">
+                <span class="modal-close-button" onclick="closeHelpModal()">
+                    <img src="https://img.icons8.com/ios-filled/50/000000/close-window.png" alt="Close" class="w-6 h-6">
+                </span>
+            </div>
+        </div>
+                                </div>
+                          </div>
+
+                         <!-- Error Modal -->
+                    <div id="errorModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-headline" role="dialog" aria-modal="true">
+                        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-content">
+                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                      <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Error
+                        </h3>
+                         <div id="errorModalContent" class="mt-2">
+                       <p id="errorMessage" class="text-red-600"></p>
+                       </div>
+                       </div>
+                        <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse">
+                        <span class="modal-close-button" onclick="closeErrorModal()">
+                          <img src="https://img.icons8.com/ios-filled/50/000000/close-window.png" alt="Close" class="w-6 h-6">
+                         </span>
+                          </div>
+                           </div>
+                            </div>
+                   </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded shadow-lg hidden">
+            Scanning is completed!
+        </div>
+
+        <div id="scan-summary-container" class="mt-4 p-4 bg-white shadow rounded-lg" style="display: none;">
+            <h2 class="text-2xl font-semibold mb-3 text-blue-700 border-b pb-2">Scan Summary</h2>
+            <p id="status" class="mb-2 text-gray-700">
+            <div class="overflow-x-auto">
+                <table id="scan-summary-table" class="min-w-full table-auto">
+                    <tbody id="scan-summary"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="output-container" class="mt-4 p-4 bg-white shadow rounded-lg overflow-x-auto" style="display: none;">
+            <h2 class="text-2xl font-semibold mb-3 text-blue-700 border-b pb-2">
+                Open Ports
+                <img width="24" height="24" src="https://img.icons8.com/emoji/48/green-circle-emoji.png" alt="green-circle-emoji" id="live-update-icon" style="display: none;"/>
+            </h2>
+            <div class="overflow-x-auto">
+                <table id="open-ports-table" class="min-w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-4 py-2 text-left text-blue-700">Port</th>
+                            <th class="px-4 py-2 text-left text-blue-700">Protocol</th>
+                            <th class="px-4 py-2 text-left text-blue-700">Service Name</th>
+                            <th class="px-4 py-2 text-left text-blue-700">Service Product</th>
+                        </tr>
+                    </thead>
+                    <tbody id="open-ports" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+            <p id="os-info" class="mt-2 text-blue-700"></p>
+        </div>
+
+
+        <div id="scan-parameters-container" class="mt-4 p-4 bg-white shadow rounded-lg" style="display: none;">
+            <h2 class="text-2xl font-semibold mb-3 text-blue-700 border-b pb-2">Scan Parameters</h2>
+            <table id="scan-parameters-table" class="min-w-full table-auto">
+                <tbody id="scan-parameters"></tbody>
+            </table>
+        </div>
+        
+        <div class="mt-4 mb-4" id="download-pdf-container" style="display: none;">
+            <button id="download-pdf" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-300" onclick="downloadPDF()">Download PDF</button>
+        </div>
+    </div>
+    <footer class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-center items-center">
+            <div class="text-center sm:text-left mr-4">
+                <p class="text-xs md:text-sm">&copy; 2025 PortPamper</p>
+                <p class="text-xs md:text-sm">Developed by Hensi</p>
+            </div>
+            <div class="flex space-x-6 mt-2 sm:mt-0">
+                <a href="https://github.com/your-repo" class="hover:underline">
+                    <img src="https://img.icons8.com/ios-filled/50/ffffff/github.png" alt="GitHub" class="w-5 h-5 sm:w-6 sm:h-6 social-icon mb-2">
+                </a>
+                <a href="https://linkedin.com/in/your-profile" class="hover:underline">
+                    <img src="https://img.icons8.com/ios-filled/50/ffffff/linkedin.png" alt="LinkedIn" class="w-5 h-5 sm:w-6 sm:h-6 social-icon mb-2">
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    
+    <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+/* Default header styles */
+header {
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.5rem;
+}
+
+header .container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+}
+
+header .flex.items-center {
+    align-items: center;
+}
+
+header img {
+    margin-right: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+}
+
+header h1 {
+    font-size: 1.5rem;
+}
+
+header nav ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    display: flex;
+}
+
+header nav li {
+    margin-left: 0.5rem;
+}
+
+header nav a {
+    text-decoration: none;
+    color: white;
+}
+
+/* Footer Styles */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    background-color: #2d3748;
+    color: white;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+footer .container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+footer .text-center {
+    text-align: left;
+}
+
+footer .flex.space-x-6 {
+    align-items: center;
+}
+
+footer a {
+    text-decoration: none;
+    color: white;
+}
+
+/* Toast Notification Styles */
+#toast {
+    position: fixed;
+    bottom: 4rem; /* Adjusted to be above the footer */
+    right: 4rem;
+    background-color: #38a169; /* Green background */
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 20; /* Ensure it is above the footer */
+}
+
+/* Media query for small screens */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.5rem; /* Smaller font size for h1 */
+    }
+
+    h2 {
+        font-size: 1.25rem; /* Smaller font size for h2 */
+    }
+
+    h3 {
+        font-size: 1rem; /* Smaller font size for h3 */
+    }
+
+    #toast {
+        bottom: 6rem; /* Adjusted for small screens */
+        right: 1rem;
+        left: 1rem;
+    }
+
+    /* Ensure form elements are responsive on mobile devices */
+    #scan-form-container {
+        width: 100%;
+        padding: 0 1rem;
+    }
+
+    #scan-form-container input,
+    #scan-form-container select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* Ensure modals are above other elements */
+#termsModal, #helpModal {
+    z-index: 50;
+}
+
+/* Ensure close button is above the modal and fixed in position */
+.modal-close-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 51;
+}
+
+/* Custom scrollbar styles for FAQ modal */
+#faqModalContent::-webkit-scrollbar {
+    width: 8px;
+}
+#faqModalContent::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+#faqModalContent::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+#faqModalContent::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+#faqModalContent {
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
+}
+
+/* Center modals on mobile devices */
+@media (max-width: 768px) {
+    .modal-content {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        position: absolute;
+        width: 90%; /* Increase modal width */
+    }
+    .modal-content h3, .modal-content h2, .modal-content p, .modal-content li {
+        font-size: 0.875rem; /* Reduce font size */
+    }
+}
+
+/* Ensure containers are responsive and scrollable on small screens */
+#output-container {
+    overflow-x: auto;
+}
+
+/* Additional styles for better mobile responsiveness */
+@media (max-width: 768px) {
+    #output-container {
+        padding: 1rem;
+    }
+
+    #open-ports-table th, #open-ports-table td {
+        padding: 0.5rem;
+    }
+}
